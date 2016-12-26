@@ -17,12 +17,22 @@ public class Message {
     private Date time;
 
     public Message(String[] pLines, String pTopic) {
-        this.lines = new ArrayList<String>();
+        this.lines = new ArrayList<>();
         this.time = new Date();
         for (String line : pLines) {
             this.lines.add(line);
         }
         this.topic = pTopic;
+    }
+
+    public Message(long time, String[] pLines, String pTopic) {
+        this.lines = new ArrayList<>();
+        this.time = new Date();
+        for (String line : pLines) {
+            this.lines.add(line);
+        }
+        this.topic = pTopic;
+        this.time = new Date(time);
     }
 
     public String getProtokollString() {
@@ -43,12 +53,12 @@ public class Message {
     public long getTime() {
         return time.getTime();
     }
-    
-    public String getTopic(){
+
+    public String getTopic() {
         return this.topic;
     }
-    
-    public ArrayList<String> getLines(){
+
+    public ArrayList<String> getLines() {
         return lines;
     }
 

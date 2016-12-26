@@ -8,6 +8,7 @@
  *
  * @author lena
  */
+import java.io.PrintWriter;
 import java.net.*;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -17,27 +18,55 @@ public class Server {
     private static ArrayList<Message> messages;
     private static int port;
     private static ArrayList<Socket> clients;
-    
+    private static ServerSocket serverSocket;
+    private static ArrayList<ClientThread> threads;
 
     public static void main(String[] args) {
+        Server server = new Server();
+        server.clients = new ArrayList<>();
+        server.messages = new ArrayList<>();
+        server.threads = new ArrayList<>();
+        if(args.length <1) {
+            args = new String[1];
+            args[0] = "8080";
+        }
         if (args.length < 1) {
             System.out.println("bitte Port angeben");
-            
+
             //SOCKETFOOO!!! ICH HAB KEINE AHNUNG WIE DAS GEHT!!!
         } else {
             try {
-                port = Integer.parseInt(args[0]);
+                server.port = Integer.parseInt(args[0]);
             } catch (Exception e) {
                 System.out.println("bitte Port angeben und kein andren foo");
             }
             try {
 
-                ServerSocket serverSocket = new ServerSocket(port);
-                System.out.println(serverSocket.getInetAddress().getHostAddress());
+                server.serverSocket = new ServerSocket();
+                server.serverSocket.bind(new InetSocketAddress(port));
+                System.out.println(server.serverSocket.getInetAddress().getHostAddress());
 
                 while (true) {
-                    Socket clientSocket = serverSocket.accept();
+                    Socket clientSocket = server.serverSocket.accept();
+                    System.out.println("blubb");
+                    server.clients.add(clientSocket);
+                    System.out.println(clientSocket.getInetAddress().getHostAddress());
+                    ClientThread t = new ClientThread(server, clientSocket);
+                    server.threads.add(t);
+                    t.run();
                     
+                    
+                    
+                    //aus inem grudn klappt das multithreading noch nicht so...
+                    System.out.println("nachrungehtsnochweiter");
+                    PrintWriter out
+                            = new PrintWriter(clientSocket.getOutputStream(), true);
+                    out.println("test");
+                    
+                    
+                    
+                    //closeAll();
+                                      
 
                 }
             } catch (Exception e) {
@@ -60,7 +89,7 @@ public class Server {
     public ArrayList<Message> getMessagesSince(long since) {
 
         ArrayList<Message> result = new ArrayList<>(this.messages.stream().filter(m -> {
-            return (m.getTime() > since);
+            return (m.getTime() >= since);
         }).collect(Collectors.toList()));
 
         return result;
@@ -73,6 +102,21 @@ public class Server {
 
         //Hier muss noch nach Zeit absteigen sortiert werden..
         return result;
+    }
+
+    public ArrayList<Message> getnMessgaesToTopic(String topic, int n) {
+        ArrayList<Message> mtt = this.getMessageToTopic(topic);
+
+        // hier muss noch sortiert werden
+        if (mtt.size() <= n) {
+            return mtt;
+        } else {
+            ArrayList<Message> e = new ArrayList<Message>();
+            for (int i = 0; i <= n; i++) {
+                e.add(mtt.get(i));
+            }
+            return e;
+        }
     }
 
     public ArrayList<String> getTopics() {
@@ -118,6 +162,29 @@ public class Server {
 
         //SORTIERuNG muss noch
         return e;
+    }
+    
+    public void addMessage(Message pMessage){
+        messages.add(pMessage);
+        System.out.println(pMessage.getProtokollString());
+    }
+
+    public static void closeAll() {
+        try {
+            serverSocket.close();
+        } catch (Exception e) {
+            System.out.println("Fehler beim close des Serversockets");
+            System.out.println(e.getMessage());
+        }
+
+        try {
+            for (Socket clientSocket : clients) {
+                clientSocket.close();
+            }
+        } catch (Exception e) {
+            System.out.println("Fehler beim close der ClientSockets");
+            System.out.println(e.getMessage());
+        }
     }
 
 }
