@@ -35,16 +35,6 @@ public class Message {
         this.time = new Date(time);
     }
 
-    public String getProtokollString() {
-        String e = "";
-        e = e + this.lines.size() + System.lineSeparator();
-        e = e + this.time.getTime();
-        e = e + this.topic + System.lineSeparator();
-        for (String line : this.lines) {
-            e = e + line + System.lineSeparator();
-        }
-        return e;
-    }
 
     public Date getDate() {
         return time;

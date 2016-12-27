@@ -166,7 +166,6 @@ public class Server {
 
     public void addMessage(Message pMessage) {
         messages.add(pMessage);
-        System.out.println(pMessage.getProtokollString());
     }
 
     public static void closeAll() {

@@ -275,7 +275,7 @@ public class ClientThread extends Thread {
 
                 Message message = new Message(time, mLines, topicInput);
                 server.addMessage(message);
-                System.out.println("clientSocket:" + message.getProtokollString());
+                
                 return message;
 
             } catch (Exception e) {
