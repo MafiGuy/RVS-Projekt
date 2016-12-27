@@ -13,10 +13,12 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.Semaphore;
 import java.util.stream.Collectors;
 
 public class ClientThread extends Thread {
 
+    private volatile Semaphore sem;
     private boolean _terminate;
     private Socket clientSocket;
     private Server server;
@@ -24,7 +26,8 @@ public class ClientThread extends Thread {
     private PrintWriter out;
     private BufferedReader in;
 
-    public ClientThread(Server pServer, Socket pClientSocket) {
+    public ClientThread(Semaphore pSem, Server pServer, Socket pClientSocket) {
+        sem = pSem;
         clientSocket = pClientSocket;
         server = pServer;
         _terminate = false;
@@ -60,7 +63,14 @@ public class ClientThread extends Thread {
                             System.out.println("First input: w");
 
                             System.out.println(rest);
+                            try {
+                                sem.acquire();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                                System.out.println(e.getMessage());
+                            }
                             sendSince(rest);
+                            sem.release();
                             break;
 
                         case 'T':
@@ -68,20 +78,40 @@ public class ClientThread extends Thread {
                             System.out.println("First input: t");
 
                             System.out.println(rest);
+                            try {
+                                sem.acquire();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                                System.out.println(e.getMessage());
+                            }
                             sendFromTopic(rest);
+                            sem.release();
                             break;
                         case 'L':
 
                             System.out.println("First input: l");
                             System.out.println(rest);
+                            try {
+                                sem.acquire();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                                System.out.println(e.getMessage());
+                            }
                             sendLastModifiedTopics(rest);
+                            sem.release();
                             break;
                         case 'P':
-
+                            try {
+                                sem.acquire();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                                System.out.println(e.getMessage());
+                            }
                             System.out.println("First input: p");
                             System.out.println(rest);
                             //System.out.println(in.readLine());                            
                             sendToAll(newMessages());
+                            sem.release();
                             break;
                         case 'X':
                             closeConnection();
@@ -135,18 +165,16 @@ public class ClientThread extends Thread {
 
     public void sendLastModifiedTopics(String number) {
         number = number.trim();
-        try{
+        try {
             int n = Integer.parseInt(number);
             ArrayList<TopicTime> topicTime;
-            if(n == 0){
+            if (n == 0) {
                 topicTime = server.getTopicTime();
-            }
-            else{
+            } else {
                 topicTime = server.getnTopicTime(n);
             }
-            sendTimeTopics (topicTime);
-        }
-        catch (Exception e) {
+            sendTimeTopics(topicTime);
+        } catch (Exception e) {
             System.out.println(e.getMessage());
             out.println(e.getMessage());
         }
@@ -167,7 +195,7 @@ public class ClientThread extends Thread {
 
     public void sendTimeTopic(TopicTime topicTime) {
         try {
-            out.println("" + topicTime.time +" " +topicTime.topic);
+            out.println("" + topicTime.time + " " + topicTime.topic);
         } catch (Exception e) {
             System.out.println(e.getMessage());
             out.println(e.getMessage());
@@ -303,17 +331,16 @@ public class ClientThread extends Thread {
     public void sendToAll(ArrayList<Message> messages) {
         server.sendToAll(messages);
     }
-    
+
     public void sendNew(ArrayList<Message> messages) {
         out.println("N");
         sendTimeTopics(toTopicTime(messages));
     }
-    
-    public ArrayList<TopicTime> toTopicTime (ArrayList<Message> messages){
-        ArrayList<TopicTime> tt = new ArrayList<>(messages.stream().map( m -> new TopicTime(m.getTopic(), m.getTime())).collect(Collectors.toList()));
-        
+
+    public ArrayList<TopicTime> toTopicTime(ArrayList<Message> messages) {
+        ArrayList<TopicTime> tt = new ArrayList<>(messages.stream().map(m -> new TopicTime(m.getTopic(), m.getTime())).collect(Collectors.toList()));
+
         // sortieren
-        
         return tt;
     }
 

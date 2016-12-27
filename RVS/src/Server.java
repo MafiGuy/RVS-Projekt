@@ -16,17 +16,20 @@ import java.util.concurrent.*;
 
 public class Server {
 
-    private static ArrayList<Message> messages;
+    private volatile static Semaphore sem;
+
+    private volatile static ArrayList<Message> messages;
     private static int port;
-    private static ArrayList<Socket> clients;
+    private volatile static ArrayList<Socket> clients;
     private static ServerSocket serverSocket;
-    private static ArrayList<ClientThread> threads;
+    private volatile static ArrayList<ClientThread> threads;
 
     public static void main(String[] args) {
         Server server = new Server();
         server.clients = new ArrayList<>();
         server.messages = new ArrayList<>();
         server.threads = new ArrayList<>();
+        server.sem= new Semaphore(1);
         if (args.length < 1) {
             args = new String[1];
             args[0] = "8080";
@@ -52,7 +55,7 @@ public class Server {
                     System.out.println("blubb");
                     server.clients.add(clientSocket);
                     System.out.println(clientSocket.getInetAddress().getHostAddress());
-                    ClientThread t = new ClientThread(server, clientSocket);
+                    ClientThread t = new ClientThread(sem, server, clientSocket);
                     server.threads.add(t);
                     t.start();
                     //t.run();
@@ -71,15 +74,6 @@ public class Server {
             }
 
         }
-    }
-
-    public String getProtokollMessages(ArrayList<Message> pMessages) {
-        String e = "";
-        e = e + pMessages.size() + System.lineSeparator();
-        for (Message m : pMessages) {
-            e = e + m.getProtokollString();
-        }
-        return e;
     }
 
     public ArrayList<Message> getMessagesSince(long since) {
@@ -169,17 +163,6 @@ public class Server {
         return e;
     }
 
-    public String getTimeTopicsProtokoll() {
-        String e = "";
-        ArrayList<String> tt = this.getTimeTopics();
-        e = e + tt.size();
-        for (String s : tt) {
-            e = e + System.lineSeparator() + s;
-        }
-
-        //SORTIERuNG muss noch
-        return e;
-    }
 
     public void addMessage(Message pMessage) {
         messages.add(pMessage);
@@ -203,9 +186,9 @@ public class Server {
             System.out.println(e.getMessage());
         }
     }
-    
-    public void sendToAll(ArrayList<Message> messages){
-        for(ClientThread thread : threads){
+
+    public void sendToAll(ArrayList<Message> messages) {
+        for (ClientThread thread : threads) {
             thread.sendNew(messages);
         }
     }
