@@ -12,6 +12,7 @@ import java.io.PrintWriter;
 import java.net.*;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.concurrent.*;
 
 public class Server {
 
@@ -53,7 +54,8 @@ public class Server {
                     System.out.println(clientSocket.getInetAddress().getHostAddress());
                     ClientThread t = new ClientThread(server, clientSocket);
                     server.threads.add(t);
-                    t.run();
+                    t.start();
+                    //t.run();
                     
                     
                     
