@@ -27,7 +27,7 @@ public class Server {
         server.clients = new ArrayList<>();
         server.messages = new ArrayList<>();
         server.threads = new ArrayList<>();
-        if(args.length <1) {
+        if (args.length < 1) {
             args = new String[1];
             args[0] = "8080";
         }
@@ -56,20 +56,14 @@ public class Server {
                     server.threads.add(t);
                     t.start();
                     //t.run();
-                    
-                    
-                    
+
                     //aus inem grudn klappt das multithreading noch nicht so...
                     System.out.println("nachrungehtsnochweiter");
                     PrintWriter out
                             = new PrintWriter(clientSocket.getOutputStream(), true);
-                    out.println("test");
-                    
-                    
-                    
-                    //closeAll();
-                                      
+                    //out.println("test");
 
+                    //closeAll();
                 }
             } catch (Exception e) {
                 System.out.println("Fehler");
@@ -154,6 +148,27 @@ public class Server {
         return e;
     }
 
+    public ArrayList<TopicTime> getTopicTime() {
+        ArrayList<TopicTime> e = new ArrayList<>();
+        for (Message m : messages) {
+            TopicTime x = new TopicTime(m.getTopic(), m.getTime());
+            e.add(x);
+        }
+        // hier noch sortieren!       
+        // neueste topics zu erst undso
+        return e;
+    }
+
+    public ArrayList<TopicTime> getnTopicTime(int n) {
+        ArrayList<TopicTime> e = getTopicTime();
+        if (e.size() > n) {
+            for (int i = n; i < e.size(); i++) {
+                e.remove(i);
+            }
+        }
+        return e;
+    }
+
     public String getTimeTopicsProtokoll() {
         String e = "";
         ArrayList<String> tt = this.getTimeTopics();
@@ -165,8 +180,8 @@ public class Server {
         //SORTIERuNG muss noch
         return e;
     }
-    
-    public void addMessage(Message pMessage){
+
+    public void addMessage(Message pMessage) {
         messages.add(pMessage);
         System.out.println(pMessage.getProtokollString());
     }
@@ -186,6 +201,12 @@ public class Server {
         } catch (Exception e) {
             System.out.println("Fehler beim close der ClientSockets");
             System.out.println(e.getMessage());
+        }
+    }
+    
+    public void sendToAll(ArrayList<Message> messages){
+        for(ClientThread thread : threads){
+            thread.sendNew(messages);
         }
     }
 

@@ -46,7 +46,6 @@ public class ClientThread extends Thread {
 
         while (!_terminate) {
             try {
-                out.println("test");
                 //System.out.println(out);
                 String inputString = in.readLine();
                 if (inputString != null) {
@@ -81,8 +80,8 @@ public class ClientThread extends Thread {
 
                             System.out.println("First input: p");
                             System.out.println(rest);
-                            //System.out.println(in.readLine());
-                            newMessages();
+                            //System.out.println(in.readLine());                            
+                            sendToAll(newMessages());
                             break;
                         case 'X':
                             closeConnection();
@@ -135,7 +134,44 @@ public class ClientThread extends Thread {
     }
 
     public void sendLastModifiedTopics(String number) {
+        number = number.trim();
+        try{
+            int n = Integer.parseInt(number);
+            ArrayList<TopicTime> topicTime;
+            if(n == 0){
+                topicTime = server.getTopicTime();
+            }
+            else{
+                topicTime = server.getnTopicTime(n);
+            }
+            sendTimeTopics (topicTime);
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+            out.println(e.getMessage());
+        }
 
+    }
+
+    public void sendTimeTopics(ArrayList<TopicTime> topicTime) {
+        try {
+            out.println(topicTime.size());
+            for (TopicTime t : topicTime) {
+                sendTimeTopic(t);
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            out.println(e.getMessage());
+        }
+    }
+
+    public void sendTimeTopic(TopicTime topicTime) {
+        try {
+            out.println("" + topicTime.time +" " +topicTime.topic);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            out.println(e.getMessage());
+        }
     }
 
     public void closeConnection() {
@@ -147,7 +183,7 @@ public class ClientThread extends Thread {
         }
     }
 
-    public void newMessages() {
+    public ArrayList<Message> newMessages() {
         try {
             String input = in.readLine();
 
@@ -158,10 +194,13 @@ public class ClientThread extends Thread {
             System.out.println(input);
 
             try {
+                ArrayList<Message> messages = new ArrayList<>();
                 int numberOfMessages = Integer.parseInt(input);
                 for (int i = 0; i < numberOfMessages; i++) {
-                    newMessage();
+                    Message m = newMessage();
+                    messages.add(m);
                 }
+                return messages;
             } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
@@ -169,10 +208,10 @@ public class ClientThread extends Thread {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
-
+        return null;
     }
 
-    public void newMessage() {
+    public Message newMessage() {
         try {
             String input = in.readLine();
 
@@ -209,6 +248,7 @@ public class ClientThread extends Thread {
                 Message message = new Message(time, mLines, topicInput);
                 server.addMessage(message);
                 System.out.println("clientSocket:" + message.getProtokollString());
+                return message;
 
             } catch (Exception e) {
                 System.out.println(e.getMessage());
@@ -217,6 +257,7 @@ public class ClientThread extends Thread {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
+        return null;
     }
 
     public void sendMessages(ArrayList<Message> pMessages) {
@@ -258,9 +299,22 @@ public class ClientThread extends Thread {
             System.out.println(e.getMessage());
         }
     }
+
+    public void sendToAll(ArrayList<Message> messages) {
+        server.sendToAll(messages);
+    }
     
-    public void sendToAll( ArrayList<Message> messages){
+    public void sendNew(ArrayList<Message> messages) {
+        out.println("N");
+        sendTimeTopics(toTopicTime(messages));
+    }
+    
+    public ArrayList<TopicTime> toTopicTime (ArrayList<Message> messages){
+        ArrayList<TopicTime> tt = new ArrayList<>(messages.stream().map( m -> new TopicTime(m.getTopic(), m.getTime())).collect(Collectors.toList()));
         
+        // sortieren
+        
+        return tt;
     }
 
 }
