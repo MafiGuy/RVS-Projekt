@@ -1,15 +1,10 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /**
+ * 
+ * Klasse zur Verwaltung von Zusammenhang eines Themas und einer Zeit
  *
- * @author lena
  */
 public class TopicTime {
-    public String topic;
+    public String topic; 
     public long time;
     
     public TopicTime(String pTopic, long pTime){

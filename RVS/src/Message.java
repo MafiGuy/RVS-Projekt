@@ -1,41 +1,40 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /**
  *
- * @author lena
+ * Klasse zur Verwaltung einer Nachricht
+ * Eine Nachricht enhält Zeit, Thema und Zeilen mit Inhalt
  */
 import java.util.*;
 
 public class Message {
 
+    //Zeilen der Nachricht
     private ArrayList<String> lines;
+    //Thema
     private String topic;
+    //Zeit
     private Date time;
-
+    
+   //Wenn man eine Nachricht erzhlt ohne eine Zeit anzugebene, 
+    //wird eine neue Nachricht mit der momentanen Zeit erstellt
     public Message(String[] pLines, String pTopic) {
         this.lines = new ArrayList<>();
-        this.time = new Date();
-        for (String line : pLines) {
-            this.lines.add(line);
-        }
+        this.time = new Date(); //erstellen eines Dates mit der momentanen Zeit
+        this.lines.addAll(Arrays.asList(pLines));
         this.topic = pTopic;
     }
 
+    //Konstruktor mit angegebener Zeit
     public Message(long time, String[] pLines, String pTopic) {
         this.lines = new ArrayList<>();
         this.time = new Date();
-        for (String line : pLines) {
-            this.lines.add(line);
-        }
+        this.lines.addAll(Arrays.asList(pLines));
         this.topic = pTopic;
         this.time = new Date(time);
     }
 
 
+    
+    //getter
     public Date getDate() {
         return time;
     }
